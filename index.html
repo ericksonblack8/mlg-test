@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Fictional Company - contact form
+    </title>
+
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <h1 class="brand">
+            <span>Fictional Company</span>
+            - contact form
+        </h1>
+    
+        <div class="wrapper">
+    
+            <!-- Company contact information -->
+            <div class="company-info">
+                <h3>Contacto</h3>
+    
+                <ul>
+                    <li><i class="fa fa-road"></i> Imaginaciolandia 222</li>
+                    <li><i class="fa fa-phone"></i> (55) 30319612</li>
+                    <li><i class="fa fa-envelope"></i> fictional@company.com</li>
+                </ul>
+            </div>
+            <!-- End .company-info -->
+    
+            <!-- CONTACT FORM -->
+            <div class="contact">
+                <h3>Contáctanos</h3>
+    
+                <form id="contact-form">
+                    <div>
+                        <label for="full-name">Nombre*</label>
+                        <input
+                            type="text"
+                            name="full-name"
+                            id="full-name"
+                            placeholder="Nombre completo"
+                            required
+                        >
+                        <span id="full-name-error" class="validation-error">Campo requerido</span>
+                    </div>
+                
+                    <div>
+                        <label for="subject">Asunto*</label>
+                        <input
+                            type="text"
+                            name="subject"
+                            id="subject"
+                            placeholder="Asunto"
+                            required
+                        >
+                        <span id="subject-error" class="validation-error">Campo requerido</span>
+                    </div>
+                
+                    <div>
+                        <label>Correo electrónico*</label>
+                        <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            placeholder="correo electrónico"
+                            required>
+                        <span id="email-error" class="validation-error">Correo electrónico inválido</span>
+                    </div>
+                
+                    <div>
+                        <label>Celular</label>
+                        <input
+                            type="text"
+                            name="phone"
+                            id="phone"
+                            placeholder="Número de celular"
+                            required
+                        >
+                        <span id="phone-error" class="validation-error">Campo debe ser númerico</span>
+                    </div>
+                
+                    <div class="full">
+                        <label>Mensaje*</label>
+                        <textarea
+                            name="message"
+                            rows="5"
+                            id="message"
+                        ></textarea>
+                        <span id="message-error" class="validation-error">Campo requerido</span>
+                    </div>
+                
+                    <div class="full">
+                        <button
+                            id="btn-submit"
+                            type="button"
+                        >
+                            Submit
+                        </button>
+                    </div>
+                </form>                
+                <!-- End #contact-form -->
+            </div>
+            <!-- End .contact -->
+    
+        </div>
+        <!-- End .wrapper -->
+    </div>
+    <!-- End .container -->
+
+    <script defer>
+
+        const removeValidationErrors = () => {
+            const validationErrors = document.getElementsByClassName('validation-error');
+            for (let i = 0; i < validationErrors.length; i++) {
+                validationErrors[i].style.display = 'none';
+            }
+        };
+
+        const validateRequiredFields = (data) => {
+            let isValid = true;
+            const requiredFields = ['full-name', 'subject', 'email', 'message'];
+            requiredFields.forEach((field) => {
+                if ( !data[field] || data[field].trim() === '' ) {
+                    document.getElementById(`${field}-error`).style.display = 'block';
+                    isValid = false;
+                }
+            });
+
+            return isValid;
+        };
+
+        const validEmail = (email) => {
+            const re = /\S+@\S+\.\S+/;
+            return re.test(email);
+        };
+
+        const validPhone = (phone) => {
+            // Due phone is optional
+            if ( !phone ) {
+                return true;
+            }
+            return !isNaN(phone) && !phone.includes('e');
+        };
+
+        const btnSubmit = document.getElementById('btn-submit');
+        btnSubmit.addEventListener('click', () => {
+            const form = document.getElementById('contact-form');
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            // Convert the data object to URLSearchParams format
+            // This is the format that fetch expects
+            const urlSearchParams = new URLSearchParams();
+            for (let key in data) {
+                urlSearchParams.append(key, data[key]);
+            }
+
+            removeValidationErrors();
+            if ( !validateRequiredFields(data) ) {
+                return;
+            }
+            // Check if email is valid
+            if ( !validEmail(data.email) ) {
+                document.getElementById('email-error').style.display = 'block';
+                return;
+            }
+
+            // Check if phone has value and is numeric and is not the letter 'e'
+            if ( !validPhone(data.phone) ) {
+                document.getElementById('phone-error').style.display = 'block';
+                return;
+            }
+
+            // Once all validations are passed, you can send the data to the server
+            fetch('/contact.php', {
+                method: 'POST',
+                body: urlSearchParams,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+
+                console.log('Success:', data);
+                if ( data.error ) {
+                    for (let key in data.data) {
+                        document.getElementById(`${key}-error`).style.display = 'block';
+                    }
+                    return;
+                }
+
+                alert('Mensaje enviado correctamente');
+                form.reset();
+            })
+        });
+    </script>
+    
+</body>
+</html>

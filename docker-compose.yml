@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - '80:80'
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - php
+  php:
+    image: php:8.2-fpm
+    volumes:
+      - .:/var/www/html
